@@ -1,7 +1,7 @@
 data "archive_file" "lambda" {
   type = "zip"
-  source_dir = "./../lambdas/${var.lambda_name}"
-  output_path = "./../lambdas/${var.lambda_name}.zip"
+  source_dir = "./lambdas/${var.lambda_name}"
+  output_path = "./lambdas/${var.lambda_name}.zip"
 }
 
 resource "aws_s3_bucket_object" "lambda_zip" {

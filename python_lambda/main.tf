@@ -3,7 +3,6 @@ resource "aws_lambda_function" "lambda" {
   s3_bucket = var.s3_bucket_name
   s3_key    = var.s3_key
   s3_object_version = var.s3_object_version
-  tags = var.tags
 
   # "main" is the filename within the zip file and "handler"
   # is the method to be called in that file.
