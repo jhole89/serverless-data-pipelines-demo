@@ -27,7 +27,7 @@ def check_state(client: boto3.resource, crawler_name: str) -> str:
         else:
             logger.info(f"Crawler ${crawler_name} still in ${state} state.")
 
-            time.sleep(int(os.getenv("CRAWLER_WAIT_TIME", 60)))
+            time.sleep(30)
             return check_state(client, crawler_name)
 
     except Exception as e:

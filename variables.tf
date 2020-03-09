@@ -38,11 +38,11 @@ variable "kms_key_alias" {
 }
 
 variable "database_name" {
-  default = "datalake"
+  default = "demo"
 }
 
 variable "api_lambda_name" {
-  default = "api_sourcing"
+  default = "Api_Sourcing"
 }
 
 variable "glue_crawler_trigger_name" {
@@ -59,6 +59,14 @@ variable "athena_workgroup_name" {
 
 variable "view_list" {
   default = "CVAS.sql"
+}
+
+variable "glue_scripts_repo" {
+  default = "./glue_scripts"
+}
+
+variable "lambda_scripts_repo" {
+  default = "./lambdas"
 }
 
 variable "source_path" {

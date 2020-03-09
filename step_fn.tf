@@ -1,4 +1,5 @@
 locals {
+  camel_case_lambda = replace(var.api_lambda_name, "_", "")
   process_step = "ProcessApi"
 }
 
@@ -9,7 +10,7 @@ resource "aws_sfn_state_machine" "API_sfn_state_machine" {
 
   definition = <<EOF
 {
-  "Comment": "A Step fn to do API's",
+  "Comment": "A Step fn to do API",
   "StartAt": "${module.api_lambda.lambda_function_name}",
   "States": {
     "${module.api_lambda.lambda_function_name}": {
@@ -17,11 +18,11 @@ resource "aws_sfn_state_machine" "API_sfn_state_machine" {
       "Resource": "${module.api_lambda.lambda_function_arn}",
       "Parameters": {
         "input": {
-
+          "url": "foo.bar"
         }
       },
-      "Next": "Is${module.api_lambda.lambda_function_name}Complete?",
-      "TimeoutSeconds": 860,
+      "Next": "Is${local.camel_case_lambda}Complete?",
+      "TimeoutSeconds": 900,
       "HeartbeatSeconds": 15,
       "Retry": [
         {
@@ -37,7 +38,7 @@ resource "aws_sfn_state_machine" "API_sfn_state_machine" {
         }
       ]
     },
-    "Is${module.api_lambda.lambda_function_name}Complete?" : {
+    "Is${local.camel_case_lambda}Complete?" : {
       "Type": "Choice",
       "Choices": [
         {
@@ -50,7 +51,7 @@ resource "aws_sfn_state_machine" "API_sfn_state_machine" {
           "BooleanEquals": true,
           "Next": "${local.process_step}"
         }
-      ],
+      ]
     },
     "${local.process_step}": {
       "Type": "Parallel",
@@ -132,7 +133,7 @@ resource "aws_sfn_state_machine" "API_sfn_state_machine" {
               "HeartbeatSeconds": 15,
               "Parameters": {
                 "SQL_QUERY_FILES": "${var.view_list}",
-                "TABLENAME": "${var.output_path}"
+                "TABLENAME": "${var.output_path}",
                 "ATHENA_DATABASE": "${module.trusted_zone.glue_catalog_database_name}",
                 "WORKGROUP": "${aws_athena_workgroup.DataConsumers.name}"
               },
@@ -204,7 +205,7 @@ resource "aws_iam_role" "events_trigger_role" {
 }
 
 resource "aws_iam_role_policy" "step_fn_allow_execute" {
-  name = "event-trigger-${aws_sfn_state_machine.API_sfn_state_machine.name}-policy"
-  role = aws_iam_role.events_trigger_role.arn
+  name = "event-trigger-${lower(aws_sfn_state_machine.API_sfn_state_machine.name)}-policy"
+  role = aws_iam_role.events_trigger_role.id
   policy =  data.aws_iam_policy_document.allow_states_execution.json
 }

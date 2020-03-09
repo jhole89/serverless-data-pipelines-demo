@@ -17,5 +17,5 @@ function buildStage() {
 }
 
 buildStage "LAMBDAS" ./PYTHONPATH=. pytest .
-buildStage "GLUE SCRIPTS"
-buildStage "TERRAFORM" terraform apply | yes
+buildStage "GLUE SCRIPTS" cd glue_scripts && sbt sanity
+buildStage "TERRAFORM" terraform plan

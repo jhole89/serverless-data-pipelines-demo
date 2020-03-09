@@ -2,6 +2,7 @@ module "api_sourcing_upload" {
   source = "./lambda_upload"
 
   lambda_name = var.api_lambda_name
+  lambda_repo = var.lambda_scripts_repo
   bucket_name = module.code_staging.s3_bucket_name
   upload_dir = "lambdas/sourcing"
   tags = var.tags

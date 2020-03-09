@@ -10,11 +10,6 @@ resource "aws_lambda_function" "lambda" {
   runtime = "python3.7"
   timeout = var.timeout_seconds
   memory_size = var.lambda_memory_size
-
-  environment {
-    variables = var.env_vars
-    }
-
   role = var.lambda_execution_role_arn
   tags = var.tags
 }

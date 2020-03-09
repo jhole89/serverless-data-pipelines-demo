@@ -1,3 +1,5 @@
+variable "lambda_repo" {}
+
 variable "lambda_name" {}
 
 variable "bucket_name" {}

@@ -2,6 +2,7 @@ module "crawler_upload" {
   source = "./lambda_upload"
 
   lambda_name = var.glue_crawler_trigger_name
+  lambda_repo = var.lambda_scripts_repo
   bucket_name = module.code_staging.s3_bucket_name
   upload_dir = "lambdas/triggers"
   tags = var.tags
@@ -15,7 +16,6 @@ module "crawler_lambda" {
   s3_key = module.crawler_upload.lambda_zip_key
   s3_object_version = module.crawler_upload.lambda_zip_version_id
   lambda_execution_role_arn = aws_iam_role.lambda_crawler_trigger_role.arn
-  env_vars = { CRAWLER_WAIT_TIME = 60 }
   tags = var.tags
 }
 

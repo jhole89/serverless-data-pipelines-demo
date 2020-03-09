@@ -1,11 +1,11 @@
 locals {
-  glue_etl_name = "ApiETL"
+  glue_etl_name = "ApiScript"
   source_path = "s3://${module.landing_zone.s3_bucket_name}/${var.source_path}"
   output_path = "s3://${module.trusted_zone.s3_bucket_name}/${var.output_path}"
 }
 
 data "local_file" "etl_script" {
-  filename = "./glue_scripts/scripts/src/main/scala/demo/scripts/${local.glue_etl_name}.scala"
+  filename = "${var.glue_scripts_repo}/scripts/src/main/scala/scripts/${local.glue_etl_name}.scala"
 }
 
 resource "aws_s3_bucket_object" "etl_script" {
@@ -17,7 +17,7 @@ resource "aws_s3_bucket_object" "etl_script" {
 }
 
 data "local_file" "etl_jar" {
-  filename = "./glue_scripts/shared/src/main/scala/demo/shared/target/shared.jar"
+  filename = "./glue_scripts/shared/target/scala-2.11/manta-innovations-demo-shared.jar"
 }
 
 resource "aws_s3_bucket_object" "etl_jar" {

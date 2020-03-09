@@ -2,6 +2,7 @@ module "view_upload" {
   source = "./lambda_upload"
 
   lambda_name = var.athena_query_trigger_name
+  lambda_repo = var.lambda_scripts_repo
   bucket_name = module.code_staging.s3_bucket_name
   upload_dir = "lambdas/triggers"
   tags = var.tags

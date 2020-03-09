@@ -25,7 +25,3 @@ variable "log_retention_days" {
   default = 14
 }
 
-variable "env_vars" {
-  type = map(string)
-  default = {}
-}
