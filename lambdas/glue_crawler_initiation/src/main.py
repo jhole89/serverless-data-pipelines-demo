@@ -11,28 +11,29 @@ logger.setLevel(logging.INFO)
 def check_state(client: boto3.resource, crawler_name: str) -> str:
 
     try:
-
         request_state = client.get_crawler(Name=crawler_name)
 
-        state = request_state.get("Crawler").get("State")
-        last_crawler_state = request_state.get("Crawler").get("LastCrawl").get("Status")
+        crawler = request_state.get("Crawler")
+        state = crawler.get("State")
 
-        if state == "READY" and last_crawler_state in ["FAILED", "CANCELLED"]:
-            raise Exception(
-                f"{request_state.get('Crawler').get('LastCrawl').get('ErrorMessage')}"
-            )
-        elif state == "READY" and last_crawler_state == "SUCCEEDED":
-            logger.info(f"Crawler ${crawler_name} run success.")
-            return last_crawler_state
+        if state == "READY":
+            last_crawl = crawler.get('LastCrawl')
+            last_crawl_state = last_crawl.get("Status")
+
+            if last_crawl_state in ["FAILED", "CANCELLED"]:
+                raise Exception(f"{last_crawl.get('ErrorMessage')}")
+            elif last_crawl_state == "SUCCEEDED":
+                logger.info(f"Crawler {crawler_name} run success.")
+                return last_crawl_state
         else:
-            logger.info(f"Crawler ${crawler_name} still in ${state} state.")
+            logger.info(f"Crawler {crawler_name} still in ${state} state.")
 
             time.sleep(30)
             return check_state(client, crawler_name)
 
-    except Exception as e:
-        logger.error(f"Get crawler ${crawler_name} state failed: ${str(e)}")
-        raise Exception(f"Get crawler ${crawler_name} state failed: ${str(e)}")
+    except Exception as err:
+        logger.error(f"Get crawler {crawler_name} state failed: ${str(err)}")
+        raise err
 
 
 def get_crawler_name(args: Tuple[Any, ...]) -> str:
@@ -40,10 +41,8 @@ def get_crawler_name(args: Tuple[Any, ...]) -> str:
     try:
         crawler_name = args[0]["CRAWLER_NAME"]
     except KeyError as kerr:
-        logger.info(f"Unable to find crawler name from ${str(args)}")
-        raise Exception(
-            f"Key Error ${kerr}: Unable to find crawler name from ${str(args)}"
-        )
+        logger.error(f"Unable to find crawler name from ${str(args)}")
+        raise kerr
 
     return crawler_name
 
@@ -51,16 +50,16 @@ def get_crawler_name(args: Tuple[Any, ...]) -> str:
 def handler(*args, **kwargs) -> str:
 
     client = boto3.client("glue")
+    crawler_name = get_crawler_name(args)
 
     try:
-        crawler_name = get_crawler_name(args)
         client.start_crawler(Name=crawler_name)
 
     except client.exceptions.CrawlerRunningException:
-        logger.info(f"Crawler ${crawler_name} is already running.")
+        logger.info(f"Crawler {crawler_name} is already running.")
     except Exception as e:
-        logger.error(f"Crawler ${crawler_name} Error: ${str(e)}")
-        raise Exception(f"Crawler ${crawler_name} Error: ${str(e)}")
+        logger.error(f"Crawler {crawler_name} Error: ${str(e)}")
+        raise Exception(f"Crawler {crawler_name} Error: ${str(e)}")
 
     state = check_state(client, crawler_name)
 

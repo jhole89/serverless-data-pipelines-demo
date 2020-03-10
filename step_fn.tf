@@ -1,6 +1,8 @@
 locals {
   camel_case_lambda = replace(var.api_lambda_name, "_", "")
   process_step = "ProcessApi"
+  sourcing_lambda_state = "LAMBDA_${lower(module.api_lambda.lambda_function_name)}"
+  etl_job_state = "GLUE_${aws_glue_job.glue_etl_job.name}"
 }
 
 resource "aws_sfn_state_machine" "API_sfn_state_machine" {
@@ -11,9 +13,9 @@ resource "aws_sfn_state_machine" "API_sfn_state_machine" {
   definition = <<EOF
 {
   "Comment": "A Step fn to do API",
-  "StartAt": "${module.api_lambda.lambda_function_name}",
+  "StartAt": "${local.sourcing_lambda_state}",
   "States": {
-    "${module.api_lambda.lambda_function_name}": {
+    "${local.sourcing_lambda_state}": {
       "Type": "Task",
       "Resource": "${module.api_lambda.lambda_function_arn}",
       "Parameters": {
@@ -42,7 +44,7 @@ resource "aws_sfn_state_machine" "API_sfn_state_machine" {
         {
           "Variable": "$.IS_COMPLETE",
           "BooleanEquals": false,
-          "Next": "${module.api_lambda.lambda_function_name}"
+          "Next": "${local.sourcing_lambda_state}"
         },
         {
           "Variable": "$.IS_COMPLETE",
@@ -62,9 +64,7 @@ resource "aws_sfn_state_machine" "API_sfn_state_machine" {
               "Type": "Task",
               "Resource": "${module.crawler_lambda.lambda_function_arn}",
               "Parameters": {
-                "input": {
                   "CRAWLER_NAME": "${module.landing_zone.crawler_name}"
-                }
               },
               "TimeoutSeconds": ${var.timeout_seconds},
               "HeartbeatSeconds": 15,
@@ -87,9 +87,9 @@ resource "aws_sfn_state_machine" "API_sfn_state_machine" {
           }
         },
         {
-          "StartAt": "${aws_glue_job.glue_etl_job.name}",
+          "StartAt": "${local.etl_job_state}",
           "States": {
-            "${aws_glue_job.glue_etl_job.name}": {
+            "${local.etl_job_state}": {
               "Type": "Task",
               "Resource": "arn:aws:states:::glue:startJobRun.sync",
               "Parameters": {
@@ -102,7 +102,7 @@ resource "aws_sfn_state_machine" "API_sfn_state_machine" {
               "Resource": "arn:aws:states:::lambda:invoke",
               "Resource": "${module.crawler_lambda.lambda_function_arn}",
               "Parameters": {
-                "input": {
+                "Payload": {
                   "CRAWLER_NAME": "${module.trusted_zone.crawler_name}"
                 }
               },
