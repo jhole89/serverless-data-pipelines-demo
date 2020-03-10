@@ -1,67 +1,96 @@
 import boto3
-import os
 import logging
 from typing import *
-import time
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
+import json
+import io
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def get_handler_input_args(args: Tuple[Any, ...]) -> Tuple[Any, ...]:
+def get_handler_arg(args: Tuple[Any, ...], key: str) -> Optional[Union[str, int]]:
 
     try:
-        url = args[0]["SQL_QUERY_FILES"]
-        tablename = args[0]["TABLENAME"]
-        athena_database = args[0]["ATHENA_DATABASE"]
-        workgroup = args[0]["WORKGROUP"]
+        arg_value = args[0][key]
 
     except KeyError as kerr:
-        logger.error("Unable to get args from lambda input: %s" % kerr)
-        raise KeyError("Unable to get args from lambda input: %s" % kerr)
+        logger.error(f"Unable to get {key} from lambda input: {kerr}")
+        raise kerr
     except IndexError as inderr:
-        logger.error("Unable to get args from lambda input %s: %s" % (str(args), inderr))
-        raise IndexError("Unable to get args from lambda input %s: %s" % (str(args), inderr))
+        logger.error(f"Unable to get {key} from lambda input {str(args)}: {inderr}")
+        raise inderr
 
-    return sql_query_files, tablename, athena_database, workgroup
+    return arg_value
 
 
-def check_state(athena: boto3.resource, query: str, exec_id: str) -> str:
-    request_status = athena.get_query_execution(QueryExecutionId=exec_id)
-    status = request_status.get("QueryExecution").get("Status")
-    state = status.get("State")
-    if state in ["FAILED", "CANCELLED"]:
-        raise Exception(
-            f"Query {query} failed with execution {exec_id}: {status.get('StateChangeReason')}"
-        )
-    elif state == "SUCCEEDED":
-        logger.info(f"Query {query} succeeded with execution {exec_id}")
-        return state
+def handler(*args, **kwargs) -> Dict[str, Union[str, int]]:
+    is_complete = False
+    page_number = get_handler_arg(args, "PAGE_NUMBER")
+    endpoint = build_endpoint(get_handler_arg(args, "URL"), get_handler_arg(args, "APIKEY"))
+
+    page_data = marshall_page(get_handler_arg(args, "DATA_KEY"), get_page(endpoint))
+
+    if len(page_data) == 0:
+        is_complete = True
+        logger.info("Completed")
+
     else:
-        logger.info(f"Query {query} running with execution {exec_id}")
-        time.sleep(30)
-        return check_state(athena, query, exec_id)
+        upload_fileobj(
+            io.BytesIO(rebuild_multiline_json(page_data)),
+            get_handler_arg(args, "LANDING_BUCKET"),
+            s3_key=f"{get_handler_arg(args, 'TABLE_NAME')}/{page_number}.json",
+        )
+        logger.info(f"Completed page {endpoint}")
+
+    handler_input = {
+        "is_complete": is_complete,
+        "page_number": int(page_number) + 1,
+    }
+
+    return handler_input
 
 
-def handler(*args, **kwargs) -> List[str]:
-    sql_query_files, tablename, athena_database, workgroup = get_handler_input_args(args)
-    athena = boto3.client("athena")
-    query_ids = []
-    for query, params in sql_query_files.split(","):
-        with open(
-            os.path.join(os.path.abspath(os.path.dirname(__file__)), "sql", query),
-            "r",
-        ) as queryfile:
-            try:
-                response = athena.start_query_execution(
-                    QueryString=queryfile.read().format(tablename, tablename),
-                    QueryExecutionContext={"Database": athena_database},
-                    WorkGroup=workgroup,
-                )
-                exec_id = response.get("QueryExecutionId")
-                logger.info(f"Query {query} initiated with execution {exec_id}")
-                check_state(athena, query, exec_id)
-                query_ids.append(exec_id)
-            except AttributeError:
-                logger.error(f"Could not find query {query}")
-    return query_ids
+def build_endpoint(
+        url: str,
+        pagesize: Optional[int] = None,
+        page: Optional[int] = None,
+        api_key: Optional[str] = None
+) -> str:
+
+    return (f"https://{url}"
+            + (f"&pageSize={pagesize}" if page else "")
+            + (f"&page={page}" if page else "")
+            + (f"&apiKey={api_key}" if api_key else ""))
+
+
+def get_page(endpoint: str) -> Dict[str, Any]:
+
+    try:
+        return json.loads(urlopen(Request(endpoint)).read().decode("utf-8"))
+
+    except HTTPError as errh:
+        logger.error("Http Error:: %s" % errh)
+        raise errh
+    except Exception as err:
+        logger.error("Something Else Error:: %s" % err)
+        raise err
+
+
+def marshall_page(data_key: str, data: Dict[str, Any]) -> List[Optional[Dict]]:
+    return data.get(data_key)
+
+
+def upload_fileobj(file_bytes: io.BytesIO, s3_bucket: str, s3_key: str) -> None:
+    if s3_key.startswith("/"):
+        s3_key = s3_key.lstrip("/")
+    s3_client = boto3.client("s3")
+    logger.debug(f"File uploaded to [{s3_bucket}/{s3_key}]")
+    s3_client.upload_fileobj(file_bytes, s3_bucket, s3_key)
+
+
+def rebuild_multiline_json(response: List[Optional[Dict]]) -> bytes:
+    multiline_json_list = [json.dumps(rec) for rec in response]
+    multiline_content = "\n".join(multiline_json_list)
+    return str.encode(multiline_content)
