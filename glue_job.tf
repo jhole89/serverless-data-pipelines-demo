@@ -32,6 +32,7 @@ resource "aws_glue_job" "glue_etl_job" {
   name = local.glue_etl_name
   role_arn = aws_iam_role.glue_job_execution_role.arn
   max_capacity = var.glue_max_capacity
+  glue_version = "1.0"
 
   command {
     script_location = "s3://${aws_s3_bucket_object.etl_script.bucket}/${aws_s3_bucket_object.etl_script.key}"
@@ -39,8 +40,8 @@ resource "aws_glue_job" "glue_etl_job" {
 
   default_arguments = {
     "--job-language" = "scala",
-    "--class" = "demo.scripts.${local.glue_etl_name}",
-    "--extra-jars" = "s3://${aws_s3_bucket_object.etl_script.bucket}/${aws_s3_bucket_object.etl_script.key}",
+    "--class" = "scripts.${local.glue_etl_name}",
+    "--extra-jars" = "s3://${aws_s3_bucket_object.etl_jar.bucket}/${aws_s3_bucket_object.etl_jar.key}",
     "--TempDir" = "s3://${module.code_staging.s3_bucket_name}/glue/tmp/",
     "--job-bookmark-option" = "job-bookmark-disable",
     "--enable-continuous-cloudwatch-log" = "true"

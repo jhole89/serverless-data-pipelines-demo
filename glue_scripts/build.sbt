@@ -16,11 +16,13 @@ lazy val root = (project in file("."))
 lazy val shared = project
   .disablePlugins(ScalafmtPlugin)
   .disablePlugins(ScalastylePlugin)
-  .settings(settings ++ Seq(
-    assemblyOption in assembly := (assemblyOption in assembly).value
-      .copy(includeScala = false, includeDependency = false)
+  .settings(
+    settings ++ Seq(
+      assemblyOption in assembly := (assemblyOption in assembly).value
+        .copy(includeScala = false, includeDependency = false)
     ),
-    libraryDependencies ++= commonDependencies)
+    libraryDependencies ++= commonDependencies
+  )
 
 lazy val scripts = project
   .disablePlugins(ScalafmtPlugin)
