@@ -45,6 +45,24 @@ variable "api_lambda_name" {
   default = "Api_Sourcing"
 }
 
+variable "api_key" {}
+
+variable "api_url" {
+  default = "api.bestbuy.com/v1/products(new=true)?format=json"
+}
+
+variable "api_page_size" {
+  default = 100
+}
+
+variable "api_data_key" {
+  default = "products"
+}
+
+variable "api_table_name" {
+  default = "best_buy_products"
+}
+
 variable "glue_crawler_trigger_name" {
   default = "glue_crawler_initiation"
 }

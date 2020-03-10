@@ -17,9 +17,7 @@ resource "aws_sfn_state_machine" "API_sfn_state_machine" {
       "Type": "Task",
       "Resource": "${module.api_lambda.lambda_function_arn}",
       "Parameters": {
-        "input": {
-          "url": "foo.bar"
-        }
+        "input.$": "$"
       },
       "Next": "Is${local.camel_case_lambda}Complete?",
       "TimeoutSeconds": 900,
@@ -42,12 +40,12 @@ resource "aws_sfn_state_machine" "API_sfn_state_machine" {
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.is_complete",
+          "Variable": "$.IS_COMPLETE",
           "BooleanEquals": false,
           "Next": "${module.api_lambda.lambda_function_name}"
         },
         {
-          "Variable": "$.is_complete",
+          "Variable": "$.IS_COMPLETE",
           "BooleanEquals": true,
           "Next": "${local.process_step}"
         }
@@ -176,6 +174,14 @@ resource "aws_cloudwatch_event_target" "step_fn" {
   arn       = "arn:aws:states:${var.aws_region}:${var.account_id}:stateMachine:${aws_sfn_state_machine.API_sfn_state_machine.name}"
   input = <<DOC
 {
+  "APIKEY": "${var.api_key}",
+  "URL": "${var.api_url}",
+  "PAGESIZE": ${var.api_page_size},
+  "PAGE_NUMBER": 1,
+  "DATA_KEY": "${var.api_data_key}",
+  "IS_COMPLETE": false,
+  "LANDING_BUCKET": "${module.landing_zone.s3_bucket_name}",
+  "TABLE_NAME": "${var.api_table_name}"
 }
 DOC
 }

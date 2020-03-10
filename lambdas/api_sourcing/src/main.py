@@ -10,27 +10,35 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def get_handler_arg(args: Tuple[Any, ...], key: str) -> Optional[Union[str, int]]:
+def get_handler_input(args: Tuple[Any, ...]) -> Dict[str, Union[str, int]]:
 
     try:
-        arg_value = args[0][key]
+        handler_input = args[0].get("input")
 
-    except KeyError as kerr:
-        logger.error(f"Unable to get {key} from lambda input: {kerr}")
-        raise kerr
-    except IndexError as inderr:
-        logger.error(f"Unable to get {key} from lambda input {str(args)}: {inderr}")
-        raise inderr
+        if handler_input is None:
+            logger.error(f"Unable to get input from handler: {args[0]}")
+            raise KeyError
 
-    return arg_value
+    except Exception as err:
+        logger.error(f"Unable to get input from handler {str(args)}: {err}")
+        raise err
+
+    return handler_input
 
 
 def handler(*args, **kwargs) -> Dict[str, Union[str, int]]:
     is_complete = False
-    page_number = get_handler_arg(args, "PAGE_NUMBER")
-    endpoint = build_endpoint(get_handler_arg(args, "URL"), get_handler_arg(args, "APIKEY"))
+    handler_input = get_handler_input(args)
 
-    page_data = marshall_page(get_handler_arg(args, "DATA_KEY"), get_page(endpoint))
+    page_number = handler_input.get("PAGE_NUMBER", 0)
+    endpoint = build_endpoint(
+        handler_input.get("URL"),
+        handler_input.get("PAGESIZE"),
+        page_number,
+        handler_input.get("APIKEY"),
+    )
+
+    page_data = marshall_page(handler_input.get("DATA_KEY"), get_page(endpoint))
 
     if len(page_data) == 0:
         is_complete = True
@@ -39,15 +47,13 @@ def handler(*args, **kwargs) -> Dict[str, Union[str, int]]:
     else:
         upload_fileobj(
             io.BytesIO(rebuild_multiline_json(page_data)),
-            get_handler_arg(args, "LANDING_BUCKET"),
-            s3_key=f"{get_handler_arg(args, 'TABLE_NAME')}/{page_number}.json",
+            handler_input.get("LANDING_BUCKET"),
+            s3_key=f"{handler_input.get('TABLE_NAME')}/{page_number}.json",
         )
         logger.info(f"Completed page {endpoint}")
 
-    handler_input = {
-        "is_complete": is_complete,
-        "page_number": int(page_number) + 1,
-    }
+    handler_input["IS_COMPLETE"] = is_complete
+    handler_input["PAGE_NUMBER"] = page_number + 1
 
     return handler_input
 
@@ -60,12 +66,13 @@ def build_endpoint(
 ) -> str:
 
     return (f"https://{url}"
-            + (f"&pageSize={pagesize}" if page else "")
-            + (f"&page={page}" if page else "")
-            + (f"&apiKey={api_key}" if api_key else ""))
+            + (f"&pageSize={pagesize}" if pagesize is not None else "")
+            + (f"&page={page}" if page is not None else "")
+            + (f"&apiKey={api_key}" if api_key is not None else ""))
 
 
 def get_page(endpoint: str) -> Dict[str, Any]:
+    logger.info(f"ENDPOINT: {endpoint}")
 
     try:
         return json.loads(urlopen(Request(endpoint)).read().decode("utf-8"))
