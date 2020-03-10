@@ -1,7 +1,7 @@
 module "landing_zone" {
   source = "./s3_bucket"
 
-  bucket_name = var.landing_bucket_name
+  bucket_name = "landing"
   database_name = var.database_name
   domain = var.domain
   glue_role_arn = aws_iam_role.glue_crawler_execution_role.arn
@@ -12,7 +12,7 @@ module "landing_zone" {
 module "trusted_zone" {
   source = "./s3_bucket"
 
-  bucket_name = var.trusted_bucket_name
+  bucket_name = "trusted"
   database_name = var.database_name
   domain = var.domain
   glue_role_arn = aws_iam_role.glue_crawler_execution_role.arn
@@ -23,7 +23,7 @@ module "trusted_zone" {
 module "analytics_zone" {
   source = "./s3_bucket"
 
-  bucket_name = var.analytics_bucket_name
+  bucket_name = "analytics"
   database_name = var.database_name
   domain = var.domain
   glue_role_arn = aws_iam_role.glue_crawler_execution_role.arn
@@ -34,7 +34,7 @@ module "analytics_zone" {
 module "athena_queries" {
   source = "./s3_bucket"
 
-  bucket_name = var.athena_query_bucket_name
+  bucket_name = "queries"
   database_name = var.database_name
   domain = var.domain
   glue_role_arn = aws_iam_role.glue_crawler_execution_role.arn
@@ -45,7 +45,7 @@ module "athena_queries" {
 module "code_staging" {
   source = "./s3_bucket"
 
-  bucket_name = var.code_staging_bucket_name
+  bucket_name = "staging"
   database_name = var.database_name
   domain = var.domain
   glue_role_arn = aws_iam_role.glue_crawler_execution_role.arn

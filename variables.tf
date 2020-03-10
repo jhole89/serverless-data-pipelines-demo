@@ -13,26 +13,6 @@ variable "domain" {
   default = "manta-innovations"
 }
 
-variable "landing_bucket_name" {
-  default = "landing"
-}
-
-variable "trusted_bucket_name" {
-  default = "trusted"
-}
-
-variable "analytics_bucket_name" {
-  default = "analytics"
-}
-
-variable "code_staging_bucket_name" {
-  default = "staging"
-}
-
-variable "athena_query_bucket_name" {
-  default = "queries"
-}
-
 variable "kms_key_alias" {
   default = "s3-encryption-key"
 }

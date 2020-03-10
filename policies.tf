@@ -113,11 +113,13 @@ data "aws_iam_policy_document" "allow_kms_access" {
       "kms:Encrypt",
       "kms:Decrypt",
       "kms:ReEncrypt*",
+      "kms:GenerateDataKey",
       "kms:GenerateDataKey*",
       "kms:DescribeKey"
     ]
     resources = [
-      "*"
+      "*",
+      aws_kms_key.s3_encryption_key.arn
     ]
   }
   statement {
@@ -275,6 +277,21 @@ data "aws_iam_policy_document" "allow_s3_put_landing" {
     resources = [
       module.landing_zone.s3_bucket_arn,
       "${module.landing_zone.s3_bucket_arn}/*"
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "allow_s3_put_staging" {
+  statement {
+    actions = [
+      "s3:PutObject",
+      "s3:PutEncryptionConfiguration",
+      "s3:DeleteObject"
+    ]
+
+    resources = [
+      module.code_staging.s3_bucket_arn,
+      "${module.code_staging.s3_bucket_arn}/*",
     ]
   }
 }

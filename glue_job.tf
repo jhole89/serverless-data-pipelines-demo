@@ -41,6 +41,7 @@ resource "aws_glue_job" "glue_etl_job" {
     "--job-language" = "scala",
     "--class" = "demo.scripts.${local.glue_etl_name}",
     "--extra-jars" = "s3://${aws_s3_bucket_object.etl_script.bucket}/${aws_s3_bucket_object.etl_script.key}",
+    "--TempDir" = "s3://${module.code_staging.s3_bucket_name}/glue/tmp/",
     "--job-bookmark-option" = "job-bookmark-disable",
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-glue-datacatalog" = "",
@@ -70,29 +71,35 @@ resource "aws_iam_role_policy_attachment" "glue_job_glue_service" {
 resource "aws_iam_role_policy" "glue_job_get_landing" {
   name = "glue-job-get-landing-policy"
   policy = data.aws_iam_policy_document.allow_s3_get_landing.json
-  role = aws_iam_role.glue_crawler_execution_role.id
+  role = aws_iam_role.glue_job_execution_role.id
 }
 
 resource "aws_iam_role_policy" "glue_job_get_trusted" {
   name = "glue-job-get-trusted-policy"
   policy = data.aws_iam_policy_document.allow_s3_get_trusted.json
-  role = aws_iam_role.glue_crawler_execution_role.id
+  role = aws_iam_role.glue_job_execution_role.id
 }
 
 resource "aws_iam_role_policy" "glue_job_get_staging" {
   name = "glue-job-get-staging-policy"
   policy = data.aws_iam_policy_document.allow_s3_get_staging.json
-  role = aws_iam_role.glue_crawler_execution_role.id
+  role = aws_iam_role.glue_job_execution_role.id
 }
 
 resource "aws_iam_role_policy" "glue_job_kms_access" {
   name = "glue-job-kms-access-policy"
   policy = data.aws_iam_policy_document.allow_kms_access.json
-  role = aws_iam_role.glue_crawler_execution_role.id
+  role = aws_iam_role.glue_job_execution_role.id
 }
 
 resource "aws_iam_role_policy" "glue_job_put_trusted" {
   name = "glue-job-put-trusted-policy"
   policy = data.aws_iam_policy_document.allow_s3_put_trusted.json
-  role = aws_iam_role.glue_crawler_execution_role.id
+  role = aws_iam_role.glue_job_execution_role.id
+}
+
+resource "aws_iam_role_policy" "glue_job_put_staging" {
+  name = "glue-job-put-staging-policy"
+  policy = data.aws_iam_policy_document.allow_s3_put_staging.json
+  role = aws_iam_role.glue_job_execution_role.id
 }
