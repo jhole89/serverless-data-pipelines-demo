@@ -17,7 +17,7 @@ variable "kms_key_alias" {
   default = "s3-encryption-key"
 }
 
-variable "database_name" {
+variable "project_name" {
   default = "demo"
 }
 

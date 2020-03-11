@@ -1,55 +1,58 @@
 locals {
-  glue_etl_name = "ApiScript"
-  source_path = "s3://${module.landing_zone.s3_bucket_name}/${var.source_path}"
-  output_path = "s3://${module.trusted_zone.s3_bucket_name}/${var.output_path}"
+  glue_script_name = "ApiScript"
+  glue_jar_name = "${var.domain}-${var.project_name}-shared.jar"
+  glue_jar_destination = "s3://${module.code_staging.s3_bucket_name}/glue/jars/${local.glue_jar_name}"
 }
 
-data "local_file" "etl_script" {
-  filename = "${var.glue_scripts_repo}/scripts/src/main/scala/scripts/${local.glue_etl_name}.scala"
+data "local_file" "glue_script" {
+  filename = "${var.glue_scripts_repo}/scripts/src/main/scala/scripts/${local.glue_script_name}.scala"
 }
 
-resource "aws_s3_bucket_object" "etl_script" {
+resource "aws_s3_bucket_object" "glue_script" {
   bucket = module.code_staging.s3_bucket_name
-  key    = "glue/classes/${local.glue_etl_name}.scala"
-  source = data.local_file.etl_script.filename
-  etag = filemd5(data.local_file.etl_script.filename)
+  key    = "glue/classes/${local.glue_script_name}.scala"
+  source = data.local_file.glue_script.filename
+  etag = filemd5(data.local_file.glue_script.filename)
   tags = var.tags
 }
 
-data "local_file" "etl_jar" {
-  filename = "./glue_scripts/shared/target/scala-2.11/manta-innovations-demo-shared.jar"
+data "local_file" "glue_jar" {
+  filename = "${var.glue_scripts_repo}/shared/target/scala-2.11/${local.glue_jar_name}"
 }
 
-resource "aws_s3_bucket_object" "etl_jar" {
-  bucket = module.code_staging.s3_bucket_name
-  key    = "glue/jars/shared.jar"
-  source = data.local_file.etl_script.filename
-  etag = filemd5(data.local_file.etl_script.filename)
-  tags = var.tags
+resource "null_resource" "large_file_upload" {
+  depends_on = [module.code_staging, data.local_file.glue_jar]
+  provisioner "local-exec" {
+    command = "aws s3 cp ${data.local_file.glue_jar.filename} ${local.glue_jar_destination}"
+  }
+  triggers = {
+    hash = filemd5(data.local_file.glue_jar.filename)
+  }
 }
 
 resource "aws_glue_job" "glue_etl_job" {
-  name = local.glue_etl_name
+  name = local.glue_script_name
   role_arn = aws_iam_role.glue_job_execution_role.arn
   max_capacity = var.glue_max_capacity
   glue_version = "1.0"
 
   command {
-    script_location = "s3://${aws_s3_bucket_object.etl_script.bucket}/${aws_s3_bucket_object.etl_script.key}"
+    script_location = "s3://${aws_s3_bucket_object.glue_script.bucket}/${aws_s3_bucket_object.glue_script.key}"
   }
 
   default_arguments = {
     "--job-language" = "scala",
-    "--class" = "scripts.${local.glue_etl_name}",
-    "--extra-jars" = "s3://${aws_s3_bucket_object.etl_jar.bucket}/${aws_s3_bucket_object.etl_jar.key}",
+    "--class" = "scripts.${local.glue_script_name}",
+    "--extra-jars" = local.glue_jar_destination,
     "--TempDir" = "s3://${module.code_staging.s3_bucket_name}/glue/tmp/",
     "--job-bookmark-option" = "job-bookmark-disable",
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-glue-datacatalog" = "",
     "--enable-metrics" = "",
-    "--sourcePath" = local.source_path,
-    "--outputPath" = local.output_path,
+    "--sourcePath" = "s3://${module.landing_zone.s3_bucket_name}/${var.source_path}",
+    "--outputPath" = "s3://${module.trusted_zone.s3_bucket_name}/${var.output_path}",
   }
+  depends_on = [null_resource.large_file_upload]
 }
 
 resource "aws_cloudwatch_log_group" "etl_glue_log_group" {

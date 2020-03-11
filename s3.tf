@@ -2,7 +2,7 @@ module "landing_zone" {
   source = "./s3_bucket"
 
   bucket_name = "landing"
-  database_name = var.database_name
+  database_name = var.project_name
   domain = var.domain
   glue_role_arn = aws_iam_role.glue_crawler_execution_role.arn
   kms_key_id = aws_kms_key.s3_encryption_key.arn
@@ -13,7 +13,7 @@ module "trusted_zone" {
   source = "./s3_bucket"
 
   bucket_name = "trusted"
-  database_name = var.database_name
+  database_name = var.project_name
   domain = var.domain
   glue_role_arn = aws_iam_role.glue_crawler_execution_role.arn
   kms_key_id = aws_kms_key.s3_encryption_key.arn
@@ -24,7 +24,7 @@ module "analytics_zone" {
   source = "./s3_bucket"
 
   bucket_name = "analytics"
-  database_name = var.database_name
+  database_name = var.project_name
   domain = var.domain
   glue_role_arn = aws_iam_role.glue_crawler_execution_role.arn
   kms_key_id = aws_kms_key.s3_encryption_key.arn
@@ -35,7 +35,7 @@ module "athena_queries" {
   source = "./s3_bucket"
 
   bucket_name = "queries"
-  database_name = var.database_name
+  database_name = var.project_name
   domain = var.domain
   glue_role_arn = aws_iam_role.glue_crawler_execution_role.arn
   kms_key_id = aws_kms_key.s3_encryption_key.arn
@@ -46,7 +46,7 @@ module "code_staging" {
   source = "./s3_bucket"
 
   bucket_name = "staging"
-  database_name = var.database_name
+  database_name = var.project_name
   domain = var.domain
   glue_role_arn = aws_iam_role.glue_crawler_execution_role.arn
   kms_key_id = aws_kms_key.s3_encryption_key.arn
