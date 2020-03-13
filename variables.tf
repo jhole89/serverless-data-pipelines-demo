@@ -28,7 +28,7 @@ variable "api_lambda_name" {
 variable "api_key" {}
 
 variable "api_url" {
-  default = "api.bestbuy.com/v1/products(new=true)?format=json"
+  default = "api.bestbuy.com/v1/products(new=true)?show=sku,productId,name,source,type,active,lowPriceGuarantee,activeUpdateDate,regularPrice,salePrice&format=json"
 }
 
 variable "api_page_size" {
@@ -40,7 +40,7 @@ variable "api_data_key" {
 }
 
 variable "api_table_name" {
-  default = "best_buy_products"
+  default = "products"
 }
 
 variable "glue_crawler_trigger_name" {
@@ -65,14 +65,6 @@ variable "glue_scripts_repo" {
 
 variable "lambda_scripts_repo" {
   default = "./lambdas"
-}
-
-variable "source_path" {
-  default = ""
-}
-
-variable "output_path" {
-  default = ""
 }
 
 variable "timeout_seconds" {

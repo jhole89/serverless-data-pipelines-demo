@@ -49,8 +49,8 @@ resource "aws_glue_job" "glue_etl_job" {
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-glue-datacatalog" = "",
     "--enable-metrics" = "",
-    "--sourcePath" = "s3://${module.landing_zone.s3_bucket_name}/${var.source_path}",
-    "--outputPath" = "s3://${module.trusted_zone.s3_bucket_name}/${var.output_path}",
+    "--sourcePath" = "s3://${module.landing_zone.s3_bucket_name}/${var.api_table_name}",
+    "--outputPath" = "s3://${module.trusted_zone.s3_bucket_name}/${var.api_table_name}",
   }
   depends_on = [null_resource.large_file_upload]
 }

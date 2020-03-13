@@ -102,9 +102,7 @@ resource "aws_sfn_state_machine" "API_sfn_state_machine" {
               "Resource": "arn:aws:states:::lambda:invoke",
               "Resource": "${module.crawler_lambda.lambda_function_arn}",
               "Parameters": {
-                "Payload": {
-                  "CRAWLER_NAME": "${module.trusted_zone.crawler_name}"
-                }
+                "CRAWLER_NAME": "${module.trusted_zone.crawler_name}"
               },
               "TimeoutSeconds": ${var.timeout_seconds},
               "HeartbeatSeconds": 15,
@@ -131,7 +129,7 @@ resource "aws_sfn_state_machine" "API_sfn_state_machine" {
               "HeartbeatSeconds": 15,
               "Parameters": {
                 "SQL_QUERY_FILES": "${var.view_list}",
-                "TABLENAME": "${var.output_path}",
+                "TABLENAME": "${var.api_table_name}",
                 "ATHENA_DATABASE": "${module.trusted_zone.glue_catalog_database_name}",
                 "WORKGROUP": "${aws_athena_workgroup.DataConsumers.name}"
               },
