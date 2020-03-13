@@ -4,6 +4,7 @@ module "landing_zone" {
   bucket_name = "landing"
   database_name = var.project_name
   domain = var.domain
+  crawler_path = var.api_table_name
   glue_role_arn = aws_iam_role.glue_crawler_execution_role.arn
   kms_key_id = aws_kms_key.s3_encryption_key.arn
   tags = var.tags
@@ -15,6 +16,7 @@ module "trusted_zone" {
   bucket_name = "trusted"
   database_name = var.project_name
   domain = var.domain
+  crawler_path = var.api_table_name
   glue_role_arn = aws_iam_role.glue_crawler_execution_role.arn
   kms_key_id = aws_kms_key.s3_encryption_key.arn
   tags = var.tags
@@ -26,6 +28,7 @@ module "analytics_zone" {
   bucket_name = "analytics"
   database_name = var.project_name
   domain = var.domain
+  crawler_path = var.api_table_name
   glue_role_arn = aws_iam_role.glue_crawler_execution_role.arn
   kms_key_id = aws_kms_key.s3_encryption_key.arn
   tags = var.tags

@@ -1,12 +1,10 @@
 variable "aws_region" {
   description = "AWS region to launch servers."
-  default     = "us-west-1"
 }
 
 variable "account_id" {
   description = "AWS Account ID"
   type = number
-  default = 517142019302
 }
 
 variable "domain" {
@@ -90,6 +88,6 @@ variable "tags" {
   type = map(string)
   default = {
     terraform = "true"
-    demo = "Vancouver AWS User Group Meetup 03/2020"
+    demo = "Vancouver AWS User Group Meetup"
   }
 }

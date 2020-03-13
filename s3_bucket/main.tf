@@ -24,7 +24,7 @@ resource "aws_glue_crawler" "s3_crawler" {
   role = var.glue_role_arn
 
   s3_target {
-    path = "s3://${aws_s3_bucket.encrypted_bucket.bucket}/"
+    path = "s3://${aws_s3_bucket.encrypted_bucket.bucket}/${var.crawler_path}"
     exclusions = concat(["**_SUCCESS", "**crc"])
   }
 
