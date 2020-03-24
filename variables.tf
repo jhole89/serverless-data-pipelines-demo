@@ -49,6 +49,10 @@ variable "athena_query_trigger_name" {
   default = "athena_query_execution"
 }
 
+variable "comprehend_trigger_name" {
+  default = "comprehend_analysis"
+}
+
 variable "athena_workgroup_name" {
   default = "DataConsumers"
 }

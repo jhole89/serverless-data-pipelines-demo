@@ -12,6 +12,7 @@ module "crawler_lambda" {
   source = "./python_lambda"
 
   lambda_name = var.glue_crawler_trigger_name
+  lambda_zip_hash = module.crawler_upload.lambda_zip_hash
   s3_bucket_name = module.code_staging.s3_bucket_name
   s3_key = module.crawler_upload.lambda_zip_key
   s3_object_version = module.crawler_upload.lambda_zip_version_id

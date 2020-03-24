@@ -39,7 +39,7 @@ def check_state(athena: boto3.resource, query: str, exec_id: str) -> str:
         return state
     else:
         logger.info(f"Query {query} running with execution {exec_id}")
-        time.sleep(5)
+        time.sleep(20)
         return check_state(athena, query, exec_id)
 
 

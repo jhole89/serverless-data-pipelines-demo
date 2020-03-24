@@ -1,6 +1,5 @@
 data "aws_iam_policy_document" "cloudwatch_events_assume" {
   statement {
-    effect = "Allow"
     actions = [ "sts:AssumeRole" ]
     principals {
       type = "Service"
@@ -11,7 +10,6 @@ data "aws_iam_policy_document" "cloudwatch_events_assume" {
 
 data "aws_iam_policy_document" "glue_assume" {
   statement {
-    effect = "Allow"
     actions = [ "sts:AssumeRole" ]
     principals {
       type = "Service"
@@ -22,7 +20,6 @@ data "aws_iam_policy_document" "glue_assume" {
 
 data "aws_iam_policy_document" "lambda_assume" {
   statement {
-    effect = "Allow"
     actions = [ "sts:AssumeRole" ]
     principals {
       type = "Service"
@@ -33,7 +30,6 @@ data "aws_iam_policy_document" "lambda_assume" {
 
 data "aws_iam_policy_document" "states_assume" {
   statement {
-    effect = "Allow"
     actions = [ "sts:AssumeRole" ]
     principals {
       type = "Service"
@@ -44,8 +40,6 @@ data "aws_iam_policy_document" "states_assume" {
 
 data "aws_iam_policy_document" "allow_athena_query_execution" {
   statement {
-    effect = "Allow"
-
     actions = [
       "athena:StartQueryExecution",
       "athena:GetQueryExecution",
@@ -57,11 +51,29 @@ data "aws_iam_policy_document" "allow_athena_query_execution" {
       "arn:aws:athena:${var.aws_region}:${var.account_id}:workgroup/${aws_athena_workgroup.DataConsumers.name}"
     ]
   }
+  statement {
+    actions = [
+      "glue:GetPartitions"
+    ]
+    resources = [
+      "arn:aws:glue:${var.aws_region}:${var.account_id}:catalog",
+      "arn:aws:glue:${var.aws_region}:${var.account_id}:database/${module.trusted_zone.glue_catalog_database_name}",
+      "arn:aws:glue:${var.aws_region}:${var.account_id}:table/${module.trusted_zone.glue_catalog_database_name}/*",
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "allow_comprehend_detection" {
+  statement {
+    actions = [
+      "comprehend:DetectEntities"
+    ]
+    resources = ["*"]
+  }
 }
 
 data "aws_iam_policy_document" "allow_glue_crawler_execution" {
   statement {
-    effect = "Allow"
     actions = [
       "glue:StartCrawler",
       "glue:ListCrawlers",
@@ -73,8 +85,6 @@ data "aws_iam_policy_document" "allow_glue_crawler_execution" {
 
 data "aws_iam_policy_document" "allow_glue_table_creation" {
   statement {
-    effect = "Allow"
-
     actions = [
       "glue:GetTable",
       "glue:GetDatabases",
@@ -92,7 +102,6 @@ data "aws_iam_policy_document" "allow_glue_table_creation" {
 
 data "aws_iam_policy_document" "allow_glue_job_execution" {
   statement {
-    effect = "Allow"
     actions = [
       "glue:StartJobRun",
       "glue:GetJobRun",
@@ -107,7 +116,6 @@ data "aws_iam_policy_document" "allow_glue_job_execution" {
 
 data "aws_iam_policy_document" "allow_kms_access" {
   statement {
-    effect = "Allow"
     actions = [
       "kms:ListAliases",
       "kms:Encrypt",
@@ -123,7 +131,6 @@ data "aws_iam_policy_document" "allow_kms_access" {
     ]
   }
   statement {
-    effect = "Allow"
     actions = [
       "kms:GenerateDataKey"
     ]
@@ -135,7 +142,6 @@ data "aws_iam_policy_document" "allow_kms_access" {
 
 data "aws_iam_policy_document" "allow_lambda_execution" {
   statement {
-    effect = "Allow"
     actions = [
       "lambda:InvokeFunction"
     ]
@@ -147,7 +153,6 @@ data "aws_iam_policy_document" "allow_lambda_execution" {
 
 data "aws_iam_policy_document" "allow_logging" {
   statement {
-    effect = "Allow"
     actions = [
       "logs:CreateLogStream",
       "logs:PutLogEvents"
@@ -160,7 +165,6 @@ data "aws_iam_policy_document" "allow_logging" {
 
 data "aws_iam_policy_document" "allow_network_interface_creation" {
   statement {
-    effect = "Allow"
     actions = [
       "ec2:CreateNetworkInterface",
       "ec2:DescribeNetworkInterfaces",
@@ -172,13 +176,11 @@ data "aws_iam_policy_document" "allow_network_interface_creation" {
 
 data "aws_iam_policy_document" "allow_s3_athena_results" {
   statement {
-    effect = "Allow"
-
     actions = [
       "s3:ListBucket",
       "s3:GetObject",
       "s3:PutObject",
-      "s3:GetBucketLocation"
+      "s3:GetBucketLocation",
     ]
 
     resources = [
@@ -190,7 +192,6 @@ data "aws_iam_policy_document" "allow_s3_athena_results" {
 
 data "aws_iam_policy_document" "allow_s3_get_analytics" {
   statement {
-    effect = "Allow"
     actions = [
       "s3:ListBucket",
       "s3:GetObject*",
@@ -206,7 +207,6 @@ data "aws_iam_policy_document" "allow_s3_get_analytics" {
 
 data "aws_iam_policy_document" "allow_s3_get_landing" {
   statement {
-    effect = "Allow"
     actions = [
       "s3:ListBucket",
       "s3:GetObject*",
@@ -222,7 +222,6 @@ data "aws_iam_policy_document" "allow_s3_get_landing" {
 
 data "aws_iam_policy_document" "allow_s3_get_staging" {
   statement {
-    effect = "Allow"
     actions = [
       "s3:ListBucket",
       "s3:GetObject*",
@@ -238,11 +237,10 @@ data "aws_iam_policy_document" "allow_s3_get_staging" {
 
 data "aws_iam_policy_document" "allow_s3_get_trusted" {
   statement {
-    effect = "Allow"
     actions = [
       "s3:ListBucket",
       "s3:GetObject*",
-      "s3:GetEncryptionConfiguration"
+      "s3:GetEncryptionConfiguration",
     ]
 
     resources = [
@@ -269,7 +267,6 @@ data "aws_iam_policy_document" "allow_s3_put_analytics" {
 
 data "aws_iam_policy_document" "allow_s3_put_landing" {
   statement {
-    effect = "Allow"
     actions = [
       "s3:PutObject",
       "s3:PutEncryptionConfiguration",
@@ -313,7 +310,6 @@ data "aws_iam_policy_document" "allow_s3_put_trusted" {
 
 data "aws_iam_policy_document" "allow_states_execution" {
   statement {
-    effect = "Allow"
     actions = [
       "states:StartExecution"
     ]

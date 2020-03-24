@@ -12,6 +12,7 @@ module "api_lambda" {
   source = "./python_lambda"
 
   lambda_name = var.api_lambda_name
+  lambda_zip_hash = module.api_sourcing_upload.lambda_zip_hash
   s3_bucket_name = module.code_staging.s3_bucket_name
   s3_key = module.api_sourcing_upload.lambda_zip_key
   s3_object_version = module.api_sourcing_upload.lambda_zip_version_id

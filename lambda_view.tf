@@ -11,11 +11,12 @@ module "view_upload" {
 module "view_lambda" {
   source = "./python_lambda"
 
-  lambda_execution_role_arn = aws_iam_role.view_execution_role.arn
   lambda_name = var.athena_query_trigger_name
+  lambda_zip_hash = module.view_upload.lambda_zip_hash
   s3_bucket_name = module.code_staging.s3_bucket_name
   s3_key = module.view_upload.lambda_zip_key
   s3_object_version = module.view_upload.lambda_zip_version_id
+  lambda_execution_role_arn = aws_iam_role.view_execution_role.arn
   tags = var.tags
 }
 

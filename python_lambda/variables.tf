@@ -1,5 +1,7 @@
 variable "lambda_name" {}
 
+variable "lambda_zip_hash" {}
+
 variable "lambda_execution_role_arn" {}
 
 variable "s3_bucket_name" {}

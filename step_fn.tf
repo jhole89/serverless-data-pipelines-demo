@@ -161,7 +161,7 @@ EOF
 resource "aws_cloudwatch_event_rule" "step_fn_trigger" {
   name = "run-${aws_sfn_state_machine.API_sfn_state_machine.name}"
   schedule_expression = var.cron_schedule
-  is_enabled = true
+  is_enabled = false
   role_arn = aws_iam_role.events_trigger_role.arn
   tags = var.tags
 }
