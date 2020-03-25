@@ -1,8 +1,9 @@
 locals {
   camel_case_lambda = replace(var.api_lambda_name, "_", "")
   process_step = "ProcessApi"
-  sourcing_lambda_state = "LAMBDA_${lower(module.api_lambda.lambda_function_name)}"
-  etl_job_state = "GLUE_${aws_glue_job.glue_etl_job.name}"
+  derive_step = "DeriveApi"
+  reporting_step = "create_views"
+  sourcing_lambda_state = lower(module.api_lambda.lambda_function_name)
 }
 
 resource "aws_sfn_state_machine" "API_sfn_state_machine" {
@@ -87,9 +88,9 @@ resource "aws_sfn_state_machine" "API_sfn_state_machine" {
           }
         },
         {
-          "StartAt": "${local.etl_job_state}",
+          "StartAt": "${aws_glue_job.glue_etl_job.name}",
           "States": {
-            "${local.etl_job_state}": {
+            "${aws_glue_job.glue_etl_job.name}": {
               "Type": "Task",
               "Resource": "arn:aws:states:::glue:startJobRun.sync",
               "Parameters": {
@@ -120,34 +121,104 @@ resource "aws_sfn_state_machine" "API_sfn_state_machine" {
                 }
               ],
               "ResultPath": "$",
-              "Next": "${module.view_lambda.lambda_function_name}"
+              "Next": "${local.derive_step}"
             },
-            "${module.view_lambda.lambda_function_name}": {
-              "Type": "Task",
-              "Resource": "${module.view_lambda.lambda_function_arn}",
-              "TimeoutSeconds": ${var.timeout_seconds},
-              "HeartbeatSeconds": 15,
-              "Parameters": {
-                "SQL_QUERY_FILES": "${var.view_list}",
-                "TABLENAME": "${var.api_table_name}",
-                "ATHENA_DATABASE": "${module.trusted_zone.glue_catalog_database_name}",
-                "WORKGROUP": "${aws_athena_workgroup.DataConsumers.name}"
-              },
-              "Retry": [
+            "${local.derive_step}": {
+              "Type": "Parallel",
+              "End": true,
+              "Branches": [
                 {
-                  "ErrorEquals": [ "Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException"],
-                  "IntervalSeconds": 2,
-                  "MaxAttempts": 6,
-                  "BackoffRate": 2
+                  "StartAt": "${local.reporting_step}",
+                  "States": {
+                    "${local.reporting_step}": {
+                      "Type": "Task",
+                      "Resource": "${module.view_lambda.lambda_function_arn}",
+                      "TimeoutSeconds": ${var.timeout_seconds},
+                      "HeartbeatSeconds": 15,
+                      "Parameters": {
+                        "SQL_QUERY_FILES": "${var.view_list}",
+                        "TABLENAME": "${var.api_table_name}",
+                        "ATHENA_DATABASE": "${module.trusted_zone.glue_catalog_database_name}",
+                        "WORKGROUP": "${aws_athena_workgroup.DataConsumers.name}"
+                      },
+                      "Retry": [
+                        {
+                          "ErrorEquals": [ "Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException"],
+                          "IntervalSeconds": 2,
+                          "MaxAttempts": 6,
+                          "BackoffRate": 2
+                        }, {
+                          "ErrorEquals": ["States.Timeout", "SSHException"],
+                          "IntervalSeconds": 2,
+                          "MaxAttempts": 1,
+                          "BackoffRate": 1
+                        }
+                      ],
+                      "ResultPath": "$",
+                      "End": true
+                    }
+                  }
                 }, {
-                  "ErrorEquals": ["States.Timeout", "SSHException"],
-                  "IntervalSeconds": 2,
-                  "MaxAttempts": 1,
-                  "BackoffRate": 1
+                  "StartAt": "${module.comprehend_lambda.lambda_function_name}",
+                  "States": {
+                    "${module.comprehend_lambda.lambda_function_name}": {
+                      "Type": "Task",
+                      "Resource": "${module.comprehend_lambda.lambda_function_arn}",
+                      "TimeoutSeconds": ${var.timeout_seconds},
+                      "HeartbeatSeconds": 15,
+                      "Parameters": {
+                        "input": {
+                          "ANALYTICS_SQL_FILE": "${var.analytics_list}",
+                          "TABLENAME": "${var.api_table_name}",
+                          "ATHENA_DATABASE": "${module.trusted_zone.glue_catalog_database_name}",
+                          "ANALYTICS_BUCKET": "${module.analytics_zone.s3_bucket_name}",
+                          "WORKGROUP": "${aws_athena_workgroup.DataConsumers.name}"
+                        }
+                      },
+                      "Retry": [
+                        {
+                          "ErrorEquals": [ "Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException"],
+                          "IntervalSeconds": 2,
+                          "MaxAttempts": 6,
+                          "BackoffRate": 2
+                        }, {
+                          "ErrorEquals": ["States.Timeout", "SSHException"],
+                          "IntervalSeconds": 2,
+                          "MaxAttempts": 1,
+                          "BackoffRate": 1
+                        }
+                      ],
+                      "ResultPath": "$",
+                      "Next": "${module.analytics_zone.crawler_name}"
+                    },
+                    "${module.analytics_zone.crawler_name}": {
+                      "Type": "Task",
+                      "Resource": "arn:aws:states:::lambda:invoke",
+                      "Resource": "${module.crawler_lambda.lambda_function_arn}",
+                      "Parameters": {
+                        "CRAWLER_NAME": "${module.analytics_zone.crawler_name}"
+                      },
+                      "TimeoutSeconds": ${var.timeout_seconds},
+                      "HeartbeatSeconds": 15,
+                      "Retry": [
+                        {
+                          "ErrorEquals": [ "Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException"],
+                          "IntervalSeconds": 2,
+                          "MaxAttempts": 3,
+                          "BackoffRate": 2
+                        }, {
+                          "ErrorEquals": ["States.Timeout"],
+                          "IntervalSeconds": 2,
+                          "MaxAttempts": 1,
+                          "BackoffRate": 1
+                        }
+                      ],
+                      "ResultPath": "$",
+                      "End": true
+                    }
+                  }
                 }
-              ],
-              "ResultPath": "$",
-              "End": true
+              ]
             }
           }
         }

@@ -61,6 +61,10 @@ variable "view_list" {
   default = "CVAS.sql"
 }
 
+variable "analytics_list" {
+  default = "SELECT_KEY_ATTRIB.sql"
+}
+
 variable "glue_scripts_repo" {
   default = "./glue_scripts"
 }

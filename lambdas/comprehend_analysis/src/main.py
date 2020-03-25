@@ -111,7 +111,7 @@ def handler(*args, **kwargs) -> None:
     handler_input = get_handler_input(args)
     athena = boto3.client("athena")
     comprehend = boto3.client("comprehend")
-    query = handler_input.get("COMPREHEND_SQL_FILE")
+    query = handler_input.get("ANALYTICS_SQL_FILE")
 
     with open(
         os.path.join(os.path.abspath(os.path.dirname(__file__)), "sql", query), "r"
@@ -132,7 +132,7 @@ def handler(*args, **kwargs) -> None:
     upload_fileobj(
         io.BytesIO(rebuild_multiline_json(data)),
         handler_input.get("ANALYTICS_BUCKET"),
-        s3_key=f"{handler_input.get('TABLE_NAME')}/comprehend.json",
+        s3_key=f"{handler_input.get('TABLENAME')}/comprehend.json",
     )
 
 
