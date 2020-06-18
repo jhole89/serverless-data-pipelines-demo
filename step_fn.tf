@@ -284,3 +284,7 @@ resource "aws_iam_role_policy" "step_fn_allow_execute" {
   role = aws_iam_role.events_trigger_role.id
   policy =  data.aws_iam_policy_document.allow_states_execution.json
 }
+
+output "api_manual_trigger" {
+  value = aws_cloudwatch_event_target.step_fn.input
+}
