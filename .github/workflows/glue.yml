@@ -16,7 +16,7 @@ jobs:
         id: build
         uses: lokkju/github-action-sbt@v0.2.2
         with:
-          commands: clean compile
+          commands: compile
           sbt_project_directory: glue_scripts
 
       - name: format check

@@ -1,7 +1,6 @@
 import os
 from typing import *
 from unittest.mock import patch, Mock
-
 import pytest
 
 from glue_crawler_initiation.src.main import handler, check_state, get_crawler_name
@@ -51,7 +50,7 @@ def return_crawler_respond_results(
     }
 
 
-@mock.patch.dict(os.environ, {"CRAWLER_WAIT_TIME": "1"})
+@patch.dict(os.environ, {"CRAWLER_WAIT_TIME": "1"})
 def test_check_state():
     mock_crawler = Mock()
     with patch("boto3.client", Mock(return_value=mock_crawler)):
@@ -66,7 +65,7 @@ def test_check_state():
         assert state == "SUCCEEDED"
 
 
-@mock.patch.dict(os.environ, {"CRAWLER_WAIT_TIME": "1"})
+@patch.dict(os.environ, {"CRAWLER_WAIT_TIME": "1"})
 def test_check_failed_state():
     mock_crawler = Mock()
     with patch("boto3.client", Mock(return_value=mock_crawler)):
