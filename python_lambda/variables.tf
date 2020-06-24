@@ -13,17 +13,17 @@ variable "s3_object_version" {}
 variable "tags" {}
 
 variable "timeout_seconds" {
-  type = number
+  type    = number
   default = 900
 }
 
 variable "lambda_memory_size" {
-  type = number
+  type    = number
   default = 128
 }
 
 variable "log_retention_days" {
-  type = number
+  type    = number
   default = 14
 }
 

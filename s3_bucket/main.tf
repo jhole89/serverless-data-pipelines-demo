@@ -1,8 +1,8 @@
 resource "aws_s3_bucket" "encrypted_bucket" {
-  acl = "private"
+  acl           = "private"
   force_destroy = "true"
-  bucket = "${var.domain}.${var.bucket_name}"
-  tags = var.tags
+  bucket        = "${var.domain}.${var.bucket_name}"
+  tags          = var.tags
 
   server_side_encryption_configuration {
     rule {
@@ -20,11 +20,11 @@ resource "aws_glue_catalog_database" "database" {
 
 resource "aws_glue_crawler" "s3_crawler" {
   database_name = aws_glue_catalog_database.database.name
-  name = "${var.bucket_name}_crawler"
-  role = var.glue_role_arn
+  name          = "${var.bucket_name}_crawler"
+  role          = var.glue_role_arn
 
   s3_target {
-    path = "s3://${aws_s3_bucket.encrypted_bucket.bucket}/${var.crawler_path}"
+    path       = "s3://${aws_s3_bucket.encrypted_bucket.bucket}/${var.crawler_path}"
     exclusions = concat(["**_SUCCESS", "**crc"])
   }
 
