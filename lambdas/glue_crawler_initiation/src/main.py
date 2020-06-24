@@ -17,7 +17,7 @@ def check_state(client: boto3.resource, crawler_name: str) -> str:
         state = crawler.get("State")
 
         if state == "READY":
-            last_crawl = crawler.get('LastCrawl')
+            last_crawl = crawler.get("LastCrawl")
             last_crawl_state = last_crawl.get("Status")
 
             if last_crawl_state in ["FAILED", "CANCELLED"]:

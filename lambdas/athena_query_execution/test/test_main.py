@@ -11,21 +11,20 @@ def test_handler():
     mock_athena = Mock()
     test_id = uuid.uuid4()
     with patch("boto3.client", Mock(return_value=mock_athena)):
-        mock_athena.start_query_execution = Mock(
-            return_value={"QueryExecutionId": test_id}
-        )
+        mock_athena.start_query_execution = Mock(return_value={"QueryExecutionId": test_id})
         mock_athena.get_query_execution = Mock(
             return_value={
-                "QueryExecution": {
-                    "QueryExecutionId": test_id,
-                    "Status": {"State": "SUCCEEDED"},
-                }
+                "QueryExecution": {"QueryExecutionId": test_id, "Status": {"State": "SUCCEEDED"},}
             }
         )
 
-        query_ids = handler({"SQL_QUERY_FILES": "vwssoagg.sql",
-                                   "ATHENA_DATABASE": "datalake_trusted",
-                                   "WORKGROUP": "workgroup"},)
+        query_ids = handler(
+            {
+                "SQL_QUERY_FILES": "vwssoagg.sql",
+                "ATHENA_DATABASE": "datalake_trusted",
+                "WORKGROUP": "workgroup",
+            },
+        )
         assert query_ids == [test_id]
 
 
@@ -35,11 +34,14 @@ def test_get_handler_args():
     expected_workgroup = "a_workgroup"
 
     actual_sql_query_files, actual_athena_database, actual_workgroup = get_handler_input_args(
-        args=({
-                  "SQL_QUERY_FILES": expected_sql_query_files,
-                  "ATHENA_DATABASE": expected_athena_database,
-                  "WORKGROUP": expected_workgroup
-              },))
+        args=(
+            {
+                "SQL_QUERY_FILES": expected_sql_query_files,
+                "ATHENA_DATABASE": expected_athena_database,
+                "WORKGROUP": expected_workgroup,
+            },
+        )
+    )
     assert actual_sql_query_files == expected_sql_query_files
     assert actual_athena_database == expected_athena_database
     assert actual_workgroup == expected_workgroup
@@ -85,6 +87,5 @@ def test_check_state_failure():
         with pytest.raises(Exception) as state_exception:
             check_state(mock_athena, "vwssoagg.sql", test_id)
         assert (
-                str(state_exception.value)
-                == f"Query vwssoagg.sql failed with execution {test_id}: xyz"
+            str(state_exception.value) == f"Query vwssoagg.sql failed with execution {test_id}: xyz"
         )

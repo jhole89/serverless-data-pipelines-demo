@@ -41,7 +41,7 @@ def test_handler():
 
 
 def return_crawler_respond_results(
-        statue: str, last_statue: str, last_error: str = ""
+    statue: str, last_statue: str, last_error: str = ""
 ) -> Dict[str, Any]:
     return {
         "Crawler": {
@@ -89,4 +89,3 @@ def test_get_crawler_name_from_payload():
 
     crawler_name = get_crawler_name(args=({"CRAWLER_NAME": "landing"},))
     assert "landing" == crawler_name
-

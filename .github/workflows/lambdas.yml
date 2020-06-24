@@ -29,3 +29,72 @@ jobs:
       - name: run tests
         id: test
         run: python3 -m pytest --html=pytest.html --self-contained-html --cov=src --cov-report html -s test
+  athena-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: lambdas/athena_query_execution
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.2'
+
+      - name: setup
+        id: setup
+        run: pip3 install -r requirements.txt
+
+      - name: style check
+        id: fmt
+        run: python3 -m black -l 100 --check .
+
+      - name: run tests
+        id: test
+        run: python3 -m pytest --html=pytest.html --self-contained-html --cov=src --cov-report html -s test
+  comprehend-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: lambdas/comprehend_analysis
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.2'
+
+      - name: setup
+        id: setup
+        run: pip3 install -r requirements.txt
+
+      - name: style check
+        id: fmt
+        run: python3 -m black -l 100 --check .
+
+      - name: run tests
+        id: test
+        run: python3 -m pytest --html=pytest.html --self-contained-html --cov=src --cov-report html -s test
+  glue-crawler-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: lambdas/glue_crawler_initiation
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.2'
+
+      - name: setup
+        id: setup
+        run: pip3 install -r requirements.txt
+
+      - name: style check
+        id: fmt
+        run: python3 -m black -l 100 --check .
+
+      - name: run tests
+        id: test
+        run: python3 -m pytest --html=pytest.html --self-contained-html --cov=src --cov-report html -s test

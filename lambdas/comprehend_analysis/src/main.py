@@ -48,39 +48,34 @@ def unpack_varchar_value(row: Dict[str, List[Dict[str, str]]]) -> Tuple[Optional
 
 
 def comprehend_text(
-        comprehend: boto3.resource,
-        freetext: str,
-        language: Optional[str] = "en"
+    comprehend: boto3.resource, freetext: str, language: Optional[str] = "en"
 ) -> List[Dict[str, Optional[str]]]:
 
     entities = comprehend.detect_entities(Text=freetext, LanguageCode=language)
     return [
-        {
-            "Entity": entity.get("Text"),
-            "Category": entity.get("Type"),
-        } for entity in entities.get("Entities") if entity.get("Score") > 0.5
+        {"Entity": entity.get("Text"), "Category": entity.get("Type"),}
+        for entity in entities.get("Entities")
+        if entity.get("Score") > 0.5
     ]
 
 
 def construct_record(
-        comprehend: boto3.resource,
-        headers: Tuple[str],
-        row: Dict[str, List[Dict[str, str]]]
+    comprehend: boto3.resource, headers: Tuple[str], row: Dict[str, List[Dict[str, str]]]
 ) -> Dict[str, List[Dict[str, Optional[str]]]]:
     unpacked_data = unpack_varchar_value(row)
     return {
-            **{header: unpacked for (header, unpacked) in zip(headers, unpacked_data)},
-            "entities": comprehend_text(comprehend, unpacked_data[-1])
-        }
+        **{header: unpacked for (header, unpacked) in zip(headers, unpacked_data)},
+        "entities": comprehend_text(comprehend, unpacked_data[-1]),
+    }
 
 
 def process_data(
-        athena: boto3.resource,
-        comprehend: boto3.resource,
-        query_id: str,
-        token: Optional[str] = None,
-        data: List[Tuple[str]] = None,
-        headers: Tuple[Optional[str]] = None
+    athena: boto3.resource,
+    comprehend: boto3.resource,
+    query_id: str,
+    token: Optional[str] = None,
+    data: List[Tuple[str]] = None,
+    headers: Tuple[Optional[str]] = None,
 ) -> List[Dict[str, Union[int, str, Dict[str, str]]]]:
 
     results = (
@@ -102,7 +97,9 @@ def process_data(
 
     next_token = results.get("NextToken")
     if next_token:
-        return process_data(athena, comprehend, query_id, token=next_token, data=data, headers=headers)
+        return process_data(
+            athena, comprehend, query_id, token=next_token, data=data, headers=headers
+        )
     else:
         return data
 
