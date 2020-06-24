@@ -1,10 +1,10 @@
-import mock
 import os
+from typing import *
+from unittest.mock import patch, Mock
+
 import pytest
 
-from mock import patch, Mock
 from glue_crawler_initiation.src.main import handler, check_state, get_crawler_name
-from typing import *
 
 
 def test_handler():

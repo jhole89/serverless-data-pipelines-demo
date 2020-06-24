@@ -1,10 +1,10 @@
-from mock import patch, Mock
-import mock
-import os
 import uuid
 from typing import *
-from athena_query_execution.src.main import handler, get_handler_input_args, check_state
+from unittest.mock import patch, Mock
+
 import pytest
+
+from athena_query_execution.src.main import handler, get_handler_input_args, check_state
 
 
 def test_handler():
