@@ -6,32 +6,43 @@ on:
       - "**"
 
 jobs:
-  api-tests:
+  glue-tests:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: glue_scripts
 
     steps:
       - uses: actions/checkout@v2
-      - uses: lokkju/github-action-sbt@v0.2.2
 
       - name: build
         id: build
-        run: sbt clean compile
+        uses: lokkju/github-action-sbt@v0.2.2
+        with:
+          commands: clean compile
+          sbt_project_directory: glue_scripts
 
       - name: format check
         id: fmt
-        run: sbt scalafmtCheckAll
+        uses: lokkju/github-action-sbt@v0.2.2
+        with:
+          commands: scalafmtCheckAll
+          sbt_project_directory: glue_scripts
 
       - name: style check
         id: style
-        run: sbt scalastyle
+        uses: lokkju/github-action-sbt@v0.2.2
+        with:
+          commands: scalastyle
+          sbt_project_directory: glue_scripts
 
       - name: test
         id: test
-        run: sbt test
+        uses: lokkju/github-action-sbt@v0.2.2
+        with:
+          commands: test
+          sbt_project_directory: glue_scripts
 
       - name: bundle
         id: assembly
-        run: sbt assembly
+        uses: lokkju/github-action-sbt@v0.2.2
+        with:
+          commands: assembly
+          sbt_project_directory: glue_scripts
