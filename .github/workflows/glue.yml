@@ -1,0 +1,37 @@
+name: Glue-Scripts
+
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: glue_scripts
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: lokkju/github-action-sbt@v0.2.2
+
+      - name: build
+        id: build
+        run: sbt clean compile
+
+      - name: format check
+        id: fmt
+        run: sbt scalafmtCheckAll
+
+      - name: style check
+        id: style
+        run: sbt scalastyle
+
+      - name: test
+        id: test
+        run: sbt test
+
+      - name: bundle
+        id: assembly
+        run: sbt assembly
