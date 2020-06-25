@@ -13,6 +13,12 @@ jobs:
       - uses: actions/checkout@v2
       - uses: hashicorp/setup-terraform@v1
 
+      - name: setup components
+        uses: olafurpg/setup-scala@v5
+        working-directory: glue_scripts
+        id: setup
+        run: sbt assembly
+
       - name: Terraform Fmt
         id: fmt
         run: terraform fmt -check -recursive

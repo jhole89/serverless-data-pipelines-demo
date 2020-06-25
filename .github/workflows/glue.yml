@@ -8,41 +8,30 @@ on:
 jobs:
   glue-tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: glue_scripts
 
     steps:
       - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v6
 
-      - name: build
-        id: build
-        uses: lokkju/github-action-sbt@v0.2.2
-        with:
-          commands: compile
-          sbt_project_directory: glue_scripts
+      - name: compile
+        id: compile
+        run: sbt compile
 
       - name: format check
         id: fmt
-        uses: lokkju/github-action-sbt@v0.2.2
-        with:
-          commands: scalafmtCheckAll
-          sbt_project_directory: glue_scripts
+        run: sbt scalafmtCheckAll
 
       - name: style check
         id: style
-        uses: lokkju/github-action-sbt@v0.2.2
-        with:
-          commands: scalastyle
-          sbt_project_directory: glue_scripts
+        run: sbt scalastyle
 
       - name: test
         id: test
-        uses: lokkju/github-action-sbt@v0.2.2
-        with:
-          commands: test
-          sbt_project_directory: glue_scripts
+        run: sbt test
 
       - name: bundle
         id: assembly
-        uses: lokkju/github-action-sbt@v0.2.2
-        with:
-          commands: assembly
-          sbt_project_directory: glue_scripts
+        run: sbt assembly
