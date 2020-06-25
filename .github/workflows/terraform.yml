@@ -15,12 +15,11 @@ jobs:
       - uses: hashicorp/setup-terraform@v1
 
       - name: configure fake creds
-        id: aws
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: 12345689
-          aws-secret-access-key: 123456789
-          aws-region: us-west-1
+        id: creds
+        run: |
+          export AWS_ACCESS_KEY_ID="anaccesskey"
+          export AWS_SECRET_ACCESS_KEY="asecretkey"
+          export AWS_DEFAULT_REGION="us-west-1"
 
       - name: setup
         working-directory: glue_scripts
