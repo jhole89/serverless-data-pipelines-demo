@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v6
       - uses: hashicorp/setup-terraform@v1
 
       - name: setup
-        uses: olafurpg/setup-scala@v6
         working-directory: glue_scripts
         id: setup
         run: sbt assembly
