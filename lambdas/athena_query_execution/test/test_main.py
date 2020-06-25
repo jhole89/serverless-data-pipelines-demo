@@ -7,6 +7,12 @@ import pytest
 from athena_query_execution.src.main import handler, get_handler_input_args, check_state
 
 
+sql_query_files = "abc.sql"
+athena_database = "an_athena_database"
+workgroup = "a_workgroup"
+table_name = "a_table"
+
+
 def test_handler():
     mock_athena = Mock()
     test_id = uuid.uuid4()
@@ -20,31 +26,36 @@ def test_handler():
 
         query_ids = handler(
             {
-                "SQL_QUERY_FILES": "vwssoagg.sql",
-                "ATHENA_DATABASE": "datalake_trusted",
-                "WORKGROUP": "workgroup",
+                "SQL_QUERY_FILES": "CVAS.sql",
+                "ATHENA_DATABASE": athena_database,
+                "WORKGROUP": workgroup,
+                "TABLENAME": table_name,
             },
         )
         assert query_ids == [test_id]
 
 
 def test_get_handler_args():
-    expected_sql_query_files = "abc.sql"
-    expected_athena_database = "an_athena_database"
-    expected_workgroup = "a_workgroup"
 
-    actual_sql_query_files, actual_athena_database, actual_workgroup = get_handler_input_args(
+    (
+        actual_sql_query_files,
+        actual_table_name,
+        actual_athena_database,
+        actual_workgroup,
+    ) = get_handler_input_args(
         args=(
             {
-                "SQL_QUERY_FILES": expected_sql_query_files,
-                "ATHENA_DATABASE": expected_athena_database,
-                "WORKGROUP": expected_workgroup,
+                "SQL_QUERY_FILES": sql_query_files,
+                "ATHENA_DATABASE": athena_database,
+                "WORKGROUP": workgroup,
+                "TABLENAME": table_name,
             },
         )
     )
-    assert actual_sql_query_files == expected_sql_query_files
-    assert actual_athena_database == expected_athena_database
-    assert actual_workgroup == expected_workgroup
+    assert actual_sql_query_files == sql_query_files
+    assert actual_table_name == table_name
+    assert actual_athena_database == athena_database
+    assert actual_workgroup == workgroup
 
 
 def return_query_execution_results(test_id, state) -> Dict[str, Any]:
@@ -68,7 +79,7 @@ def test_check_state():
                 return_query_execution_results(test_id, "SUCCEEDED"),
             ]
         )
-        state = check_state(mock_athena, "vwssoagg.sql", test_id)
+        state = check_state(mock_athena, sql_query_files, test_id)
         assert state == "SUCCEEDED"
 
 
@@ -85,7 +96,8 @@ def test_check_state_failure():
             ]
         )
         with pytest.raises(Exception) as state_exception:
-            check_state(mock_athena, "vwssoagg.sql", test_id)
+            check_state(mock_athena, sql_query_files, test_id)
         assert (
-            str(state_exception.value) == f"Query vwssoagg.sql failed with execution {test_id}: xyz"
+            str(state_exception.value)
+            == f"Query {sql_query_files} failed with execution {test_id}: xyz"
         )
