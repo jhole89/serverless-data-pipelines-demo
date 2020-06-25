@@ -14,6 +14,14 @@ jobs:
       - uses: olafurpg/setup-scala@v6
       - uses: hashicorp/setup-terraform@v1
 
+      - name: configure fake creds
+        id: aws
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: 12345689
+          aws-secret-access-key: 123456789
+          aws-region: us-west-1
+
       - name: setup
         working-directory: glue_scripts
         id: setup
@@ -33,4 +41,4 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -var 'aws_region=us-west-1' -var 'account_id=12345' -var 'api_key=54321'
+        run: terraform plan -no-color -var 'aws_region=us-west-1' -var 'account_id=12345689' -var 'api_key=12345'
