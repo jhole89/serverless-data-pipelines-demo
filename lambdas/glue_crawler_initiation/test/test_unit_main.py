@@ -1,10 +1,9 @@
-import mock
 import os
+from typing import *
+from unittest.mock import patch, Mock
 import pytest
 
-from mock import patch, Mock
 from glue_crawler_initiation.src.main import handler, check_state, get_crawler_name
-from typing import *
 
 
 def test_handler():
@@ -41,7 +40,7 @@ def test_handler():
 
 
 def return_crawler_respond_results(
-        statue: str, last_statue: str, last_error: str = ""
+    statue: str, last_statue: str, last_error: str = ""
 ) -> Dict[str, Any]:
     return {
         "Crawler": {
@@ -51,7 +50,7 @@ def return_crawler_respond_results(
     }
 
 
-@mock.patch.dict(os.environ, {"CRAWLER_WAIT_TIME": "1"})
+@patch.dict(os.environ, {"CRAWLER_WAIT_TIME": "1"})
 def test_check_state():
     mock_crawler = Mock()
     with patch("boto3.client", Mock(return_value=mock_crawler)):
@@ -66,7 +65,7 @@ def test_check_state():
         assert state == "SUCCEEDED"
 
 
-@mock.patch.dict(os.environ, {"CRAWLER_WAIT_TIME": "1"})
+@patch.dict(os.environ, {"CRAWLER_WAIT_TIME": "1"})
 def test_check_failed_state():
     mock_crawler = Mock()
     with patch("boto3.client", Mock(return_value=mock_crawler)):
@@ -89,4 +88,3 @@ def test_get_crawler_name_from_payload():
 
     crawler_name = get_crawler_name(args=({"CRAWLER_NAME": "landing"},))
     assert "landing" == crawler_name
-

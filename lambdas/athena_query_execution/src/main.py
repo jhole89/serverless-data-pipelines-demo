@@ -49,8 +49,7 @@ def handler(*args, **kwargs) -> List[str]:
     query_ids = []
     for query in sql_query_files.split(","):
         with open(
-            os.path.join(os.path.abspath(os.path.dirname(__file__)), "sql", query),
-            "r",
+            os.path.join(os.path.abspath(os.path.dirname(__file__)), "sql", query), "r",
         ) as queryfile:
             try:
                 response = athena.start_query_execution(

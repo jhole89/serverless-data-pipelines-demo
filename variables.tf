@@ -4,7 +4,7 @@ variable "aws_region" {
 
 variable "account_id" {
   description = "AWS Account ID"
-  type = number
+  type        = number
 }
 
 variable "domain" {
@@ -74,17 +74,17 @@ variable "lambda_scripts_repo" {
 }
 
 variable "timeout_seconds" {
-  type = number
+  type    = number
   default = 900
 }
 
 variable "log_retention_days" {
-  type = number
+  type    = number
   default = 14
 }
 
 variable "glue_max_capacity" {
-  type = number
+  type    = number
   default = 2
 }
 
@@ -96,6 +96,6 @@ variable "tags" {
   type = map(string)
   default = {
     terraform = "true"
-    demo = "Vancouver AWS User Group Meetup"
+    demo      = "Vancouver AWS User Group Meetup"
   }
 }

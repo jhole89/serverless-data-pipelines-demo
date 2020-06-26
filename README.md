@@ -1,4 +1,12 @@
 # Serverless Data Pipelines
+![Terraform](https://github.com/jhole89/serverless-data-pipelines-demo/workflows/Terraform/badge.svg)
+![Python-Lambdas](https://github.com/jhole89/serverless-data-pipelines-demo/workflows/Python-Lambdas/badge.svg)
+![Glue-Scripts](https://github.com/jhole89/serverless-data-pipelines-demo/workflows/Glue-Scripts/badge.svg)
+
+![](https://badgen.net/badge/terraform/0.12/cyan)
+![](https://badgen.net/badge/python/3.8/blue)
+![](https://badgen.net/badge/scala/2.11/red)
+![](https://badgen.net/badge/apache-spark/2.4.3/orange)
 
 This repo demonstrates an example of how to utilise Serverless AWS services to construct a modular big data
 pipeline. It builds both the architecture required to build a standard enterprise datalake and deploys 

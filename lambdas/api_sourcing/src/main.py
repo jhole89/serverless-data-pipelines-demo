@@ -59,16 +59,18 @@ def handler(*args, **kwargs) -> Dict[str, Union[str, int]]:
 
 
 def build_endpoint(
-        url: str,
-        pagesize: Optional[int] = None,
-        page: Optional[int] = None,
-        api_key: Optional[str] = None
+    url: str,
+    pagesize: Optional[int] = None,
+    page: Optional[int] = None,
+    api_key: Optional[str] = None,
 ) -> str:
 
-    return (f"https://{url}"
-            + (f"&pageSize={pagesize}" if pagesize is not None else "")
-            + (f"&page={page}" if page is not None else "")
-            + (f"&apiKey={api_key}" if api_key is not None else ""))
+    return (
+        f"https://{url}"
+        + (f"&pageSize={pagesize}" if pagesize is not None else "")
+        + (f"&page={page}" if page is not None else "")
+        + (f"&apiKey={api_key}" if api_key is not None else "")
+    )
 
 
 def get_page(endpoint: str) -> Dict[str, Any]:

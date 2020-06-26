@@ -1,0 +1,37 @@
+name: Glue-Scripts
+
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  glue-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: glue_scripts
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v6
+
+      - name: compile
+        id: compile
+        run: sbt compile
+
+      - name: format check
+        id: fmt
+        run: sbt scalafmtCheckAll
+
+      - name: style check
+        id: style
+        run: sbt scalastyle
+
+      - name: test
+        id: test
+        run: sbt test
+
+      - name: bundle
+        id: assembly
+        run: sbt assembly

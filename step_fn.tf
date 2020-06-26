@@ -1,15 +1,15 @@
 locals {
-  camel_case_lambda = replace(var.api_lambda_name, "_", "")
-  process_step = "ProcessApi"
-  derive_step = "DeriveApi"
-  reporting_step = "create_views"
+  camel_case_lambda     = replace(var.api_lambda_name, "_", "")
+  process_step          = "ProcessApi"
+  derive_step           = "DeriveApi"
+  reporting_step        = "create_views"
   sourcing_lambda_state = lower(module.api_lambda.lambda_function_name)
 }
 
 resource "aws_sfn_state_machine" "API_sfn_state_machine" {
-  name = "ApiStateMachine"
+  name     = "ApiStateMachine"
   role_arn = aws_iam_role.step_fn_role.arn
-  tags = var.tags
+  tags     = var.tags
 
   definition = <<EOF
 {
@@ -230,18 +230,18 @@ EOF
 }
 
 resource "aws_cloudwatch_event_rule" "step_fn_trigger" {
-  name = "run-${aws_sfn_state_machine.API_sfn_state_machine.name}"
+  name                = "run-${aws_sfn_state_machine.API_sfn_state_machine.name}"
   schedule_expression = var.cron_schedule
-  is_enabled = false
-  role_arn = aws_iam_role.events_trigger_role.arn
-  tags = var.tags
+  is_enabled          = false
+  role_arn            = aws_iam_role.events_trigger_role.arn
+  tags                = var.tags
 }
 
 resource "aws_cloudwatch_event_target" "step_fn" {
-  rule      = aws_cloudwatch_event_rule.step_fn_trigger.name
+  rule     = aws_cloudwatch_event_rule.step_fn_trigger.name
   role_arn = aws_iam_role.events_trigger_role.arn
-  arn       = "arn:aws:states:${var.aws_region}:${var.account_id}:stateMachine:${aws_sfn_state_machine.API_sfn_state_machine.name}"
-  input = <<DOC
+  arn      = "arn:aws:states:${var.aws_region}:${var.account_id}:stateMachine:${aws_sfn_state_machine.API_sfn_state_machine.name}"
+  input    = <<DOC
 {
   "APIKEY": "${var.api_key}",
   "URL": "${var.api_url}",
@@ -256,33 +256,33 @@ DOC
 }
 
 resource "aws_iam_role" "step_fn_role" {
-  name = "StepFunctionRole"
-  tags = var.tags
+  name               = "StepFunctionRole"
+  tags               = var.tags
   assume_role_policy = data.aws_iam_policy_document.states_assume.json
 }
 
 resource "aws_iam_role_policy" "lambda_trigger_policy" {
-  name = "lambda-execution-trigger"
-  role = aws_iam_role.step_fn_role.id
+  name   = "lambda-execution-trigger"
+  role   = aws_iam_role.step_fn_role.id
   policy = data.aws_iam_policy_document.allow_lambda_execution.json
 }
 
 resource "aws_iam_role_policy" "glue_trigger_policy" {
-  name = "glue-execution-trigger"
-  role = aws_iam_role.step_fn_role.id
+  name   = "glue-execution-trigger"
+  role   = aws_iam_role.step_fn_role.id
   policy = data.aws_iam_policy_document.allow_glue_job_execution.json
 }
 
 resource "aws_iam_role" "events_trigger_role" {
-  name = "cloudwatch-event-trigger"
+  name               = "cloudwatch-event-trigger"
   assume_role_policy = data.aws_iam_policy_document.cloudwatch_events_assume.json
-  tags = var.tags
+  tags               = var.tags
 }
 
 resource "aws_iam_role_policy" "step_fn_allow_execute" {
-  name = "event-trigger-${lower(aws_sfn_state_machine.API_sfn_state_machine.name)}-policy"
-  role = aws_iam_role.events_trigger_role.id
-  policy =  data.aws_iam_policy_document.allow_states_execution.json
+  name   = "event-trigger-${lower(aws_sfn_state_machine.API_sfn_state_machine.name)}-policy"
+  role   = aws_iam_role.events_trigger_role.id
+  policy = data.aws_iam_policy_document.allow_states_execution.json
 }
 
 output "api_manual_trigger" {
